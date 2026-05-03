@@ -130,3 +130,13 @@ See `examples/11_mint_burn_demo.py` for the full explainer.
 Settlement is automatic — at expiry, USDH credits land in the account. No
 script needed; `12_wait_for_settlement.py` just polls the balance to show this.
 
+## Disclaimer
+
+This code is provided **as is**, for educational purposes only, with no
+warranties of any kind. Nothing here is financial advice. HIP-4 went live
+on mainnet days before this was written — the API surface, fee model, and
+market roster may shift without notice. You are solely responsible for any
+funds, keys, or trades involved in running this code. The authors and
+Chainstack accept no liability for losses, errors, or any other consequences
+arising from its use.
+
