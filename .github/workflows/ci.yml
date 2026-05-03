@@ -1,0 +1,32 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+      - name: Set up Python
+        run: uv python install 3.13
+      - name: Install
+        run: uv sync --frozen
+      - name: Smoke test (imports + asset id encoding)
+        run: |
+          uv run python -c "
+          from hl4 import (
+              encode_asset_id, encode_coin, encode_balance_coin,
+              parse_recurring_description,
+          )
+          assert encode_asset_id(5915, 0) == 100_059_150
+          assert encode_asset_id(5915, 1) == 100_059_151
+          assert encode_coin(5915, 0) == '#59150'
+          assert encode_balance_coin(5915, 0) == '+59150'
+          spec = parse_recurring_description('class:priceBinary|underlying:BTC|expiry:20260504-0300|targetPrice:78443|period:1d')
+          assert spec.underlying == 'BTC' and spec.target_price == 78443.0
+          print('ok')
+          "
