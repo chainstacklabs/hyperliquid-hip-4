@@ -1,22 +1,31 @@
 """Explainer: mint vs burn vs normal-trade on HIP-4.
 
-HIP-4 has no separate `splitPosition` / `mergePositions` API like Polymarket
-(Gnosis CTF). Instead, every fill in the orderbook is *classified* by the
-matching engine into one of these cases (per the official fee docs):
+There are TWO ways YES/NO shares get created or destroyed on HIP-4:
+
+A) Explicit `userOutcome` actions — split / merge / negate. You call them
+   directly, no counterparty needed (see 13_split_merge.py). split locks USDH
+   and mints a YES+NO pair; merge burns a pair back into USDH.
+
+B) Orderbook fills, which the matching engine *classifies* into one of the
+   cases below based on the inventory of the two matching counterparties. THIS
+   is what the explainer here is about — you don't pick the case, the engine
+   does:
 
   1. MINT          — both sides have no prior position. Locks USDH on each side
-                     and creates a new YES holder + a new NO holder. FEE: 0.
+                     and creates a new YES holder + a new NO holder.
   2. NORMAL TRADE  — one side closes an existing position, the other opens.
-                     Fee paid by whichever side is opening / taking liquidity.
   3. BURN          — both sides hold opposite legs and trade against each other
                      to flatten. The two positions cancel and USDH collateral
-                     is released. Fees apply (both sides, or taker-only).
+                     is released.
   4. SETTLEMENT    — at expiry, oracle posts result; YES credits 1 USDH, NO
                      credits 0 (or vice versa). No claim call needed.
 
-Implication for your bot: you don't choose mint/burn — the engine does, based
-on the inventory of the matching counterparties. Two equivalent ways to get
-short YES exposure are:
+Fees: currently ZERO on outcome markets (initial testing). When fees turn on,
+they follow the spot model (taker / builder-code), classified per case above.
+
+Implication for your bot: for orderbook fills you don't choose mint/burn — the
+engine does, based on the inventory of the matching counterparties. Two
+equivalent ways to get short YES exposure are:
   (a) place a sell on the YES side at price p (synthetic short)
   (b) place a buy on the NO side at price 1-p
 

@@ -46,6 +46,7 @@ uv run python examples/04_orderbook_snapshot.py --outcome 5915
 | 10 | `10_categorical_trade.py` | Trade a single leg of a question |
 | 11 | `11_mint_burn_demo.py` | Explainer of mint/burn/normal-trade fee classes |
 | 12 | `12_wait_for_settlement.py` | Hold to expiry, observe auto-settlement |
+| 13 | `13_split_merge.py` | Explicit `userOutcome` split / merge / negate |
 
 ## Bot
 
@@ -87,7 +88,7 @@ Mixing them up will silently fail to find your position. `hl4.outcomes` exposes
 BTC daily YES (outcome 5915) → trade `#59150`, balance `+59150`, asset_id `100_059_150`.
 
 ### SDK doesn't know about HIP-4 yet
-`hyperliquid-python-sdk` v0.23.0 has no HIP-4 support. The shared module
+`hyperliquid-python-sdk` (through v0.24.0) has no HIP-4 support. The shared module
 `hl4.client.make_clients()` patches the SDK's `Info` and `Exchange` instances
 by injecting `coin_to_asset` and `name_to_coin` entries for every live outcome
 fetched via `outcomeMeta`. Once injected, normal `Exchange.order(...)` calls
@@ -111,20 +112,36 @@ Outcome prices are constrained to `0.001 .. 0.999` (probabilities, not raw
 prices). The price tick on the BTC binary is `0.0001` (e.g. `0.4235`); the bot
 defaults to `0.001` for safety.
 
-### No split / merge primitive
-Unlike Polymarket (Gnosis CTF), there is no `splitPosition` or
-`mergePositions` API. To get YES exposure you place a buy on the YES book; to
-get short-YES exposure you buy NO. Mint and burn happen *implicitly* inside
-the matching engine as a side-effect of fills:
+### Split / merge: explicit actions AND implicit engine classification
+Two distinct mechanisms create/destroy shares:
 
-| Engine classification | When it happens | Fee |
+**1. Explicit `userOutcome` actions** (like Polymarket's `splitPosition` /
+`mergePositions`, which earlier HIP-4 builds lacked). Sent as raw L1 actions —
+the SDK has no helper, so `hl4.outcome_actions` signs them by hand:
+
+| Action | Shape | Effect |
 |---|---|---|
-| MINT | both counterparties had no prior position | 0 |
-| NORMAL | one side opens, the other closes | fee on the opener / taker |
-| BURN | both counterparties hold the opposite side and unwind together | both sides (or taker only) |
-| SETTLEMENT | at expiry, oracle credits 0 or 1 USDH | `settle_fraction × sz` |
+| split | `{type: userOutcome, splitOutcome: {outcome, amount}}` | lock `amount` USDH → mint `amount` YES + `amount` NO |
+| merge | `{type: userOutcome, mergeOutcome: {outcome, amount\|null}}` | burn YES+NO pair → release USDH (`null` = max) |
+| negate | `{type: userOutcome, negateOutcome: {question, outcome, amount}}` | burn NO of one named leg → credit YES of every other leg (other named + fallback); unidirectional |
+| merge-question | `{type: userOutcome, mergeQuestion: {question, amount\|null}}` | burn a complete YES set (1 of every leg) → USDH; the way to unwind a negate / exit a full set without waiting for settlement |
 
-See `examples/11_mint_burn_demo.py` for the full explainer.
+Note: you cannot split a question's **fallback** outcome (`Cannot split
+fallback outcome`). See `examples/13_split_merge.py`.
+
+**2. Implicit engine classification** of orderbook fills — to get YES exposure
+you place a buy on the YES book; for short-YES you buy NO. The engine labels
+each fill as a side-effect:
+
+| Engine classification | When it happens |
+|---|---|
+| MINT | both counterparties had no prior position |
+| NORMAL | one side opens, the other closes |
+| BURN | both counterparties hold the opposite side and unwind together |
+| SETTLEMENT | at expiry, oracle credits 0 or 1 USDH (`settle_fraction × sz`) |
+
+**Fees are currently zero on outcome markets** (initial testing). See
+`examples/11_mint_burn_demo.py` for the full explainer.
 
 ### No claim/redeem call at expiry
 Settlement is automatic — at expiry, USDH credits land in the account. No
