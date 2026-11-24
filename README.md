@@ -1,6 +1,6 @@
 # Hyperliquid HIP-4 — Learning examples + market-maker bot
 
-> **Built with [Chainstack](https://chainstack.com).** Managed RPC for Hyperliquid — HyperEVM `/evm` (default, hl-node-compliant) and `/nanoreth` (with system transactions) on a single endpoint, plus a subset of HyperCore `/info` queries. Get a private node from the [console](https://console.chainstack.com), browse the [Hyperliquid RPC reference](https://docs.chainstack.com/reference/blockchain-apis), or point your AI agent at the [Chainstack MCP server](https://mcp.chainstack.com) (`get mcp.chainstack.com`) to deploy and manage nodes from your IDE.
+> **Built with [Chainstack](https://chainstack.com/?utm_source=github&utm_medium=referral&utm_campaign=hyperliquid-hip-4).** Managed RPC for Hyperliquid — HyperEVM `/evm` (default, hl-node-compliant) and `/nanoreth` (with system transactions) on a single endpoint, plus a subset of HyperCore `/info` queries. Get a private node from the [console](https://console.chainstack.com/sign-up?utm_source=github&utm_medium=referral&utm_campaign=hyperliquid-hip-4), browse the [Hyperliquid RPC reference](https://docs.chainstack.com/reference/blockchain-apis?utm_source=github&utm_medium=referral&utm_campaign=hyperliquid-hip-4), or point your AI agent at the [Chainstack MCP server](https://mcp.chainstack.com/?utm_source=github&utm_medium=referral&utm_campaign=hyperliquid-hip-4) (`get mcp.chainstack.com`) to deploy and manage nodes from your IDE.
 
 ---
 
